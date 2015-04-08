@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <title>tRustworthy concurrency</title>
+
+    
+    <link rel="stylesheet" href="rust.css">
+<link rel="stylesheet" href="sliderust.css">
+<script src="sliderust.js"></script>
+
+
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+    <h1 class="title">tRustworthy concurrency</h1>
+    <p>Huon Wilson</p>
+
+<p>April, 2015</p>
+
+<h1 id="haiku-(again)" class='section-header'><a
+                           href="#haiku-(again)">Haiku (again)</a></h1>
+<blockquote>
+<p>a systems language<br/>
+pursuing the trifecta<br/>
+safe, concurrent, fast</p>
+</blockquote>
+
+<div class="attribution"><a href="http://twitter.com/lindsey">@lindsey</a></div>
+
+<p>Being concurrent and safe is hard.</p>
+
+<h1 id="but-not-too-hard" class='section-header'><a
+                           href="#but-not-too-hard">But not too hard</a></h1>
+<p>Rust&#39;s type system has two main tools:</p>
+
+<ul>
+<li>ownership</li>
+<li>borrowing</li>
+</ul>
+
+<p>The concurrency story is built with them.</p>
+
+<h1 id="ownership-&ndash;-who&#39;s-in-control?" class='section-header'><a
+                           href="#ownership-&ndash;-who&#39;s-in-control?">Ownership &ndash; who&#39;s in control?</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>struct</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='ident'>i32</span> }
+
+<span class='kw'>let</span> <span class='ident'>owner</span> <span class='op'>=</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='number'>1</span> };
+
+<span class='kw'>fn</span> <span class='ident'>foo</span>(<span class='ident'>value</span>: <span class='ident'>MyType</span>) { <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>x</span>); <span class='comment'>/* etc */</span> }
+
+<span class='ident'>foo</span>(<span class='ident'>owner</span>);
+<span class='kw'>let</span> <span class='ident'>use_again</span> <span class='op'>=</span> <span class='ident'>owner</span>;
+</pre>
+
+<hr class="pause" />
+
+<pre><code class="language-txt">... error: use of moved value: `owner`
+let use_again = owner;
+    ^~~~~~~~~
+... note: `owner` moved here because it has type `main::MyType`, which is non-copyable
+show(owner);
+     ^~~~~
+</code></pre>
+
+<h1 id="borrowing-&ndash;-don&#39;t-lose-control!" class='section-header'><a
+                           href="#borrowing-&ndash;-don&#39;t-lose-control!">Borrowing &ndash; don&#39;t lose control!</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>struct</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='ident'>i32</span> }
+
+<span class='kw'>let</span> <span class='ident'>owner</span> <span class='op'>=</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='number'>1</span> };
+
+<span class='kw'>fn</span> <span class='ident'>foo</span>(<span class='ident'>value</span>: <span class='kw-2'>&amp;</span><span class='ident'>MyType</span>) { <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>x</span>); <span class='comment'>/* etc */</span> }
+
+<span class='ident'>foo</span>(<span class='kw-2'>&amp;</span><span class='ident'>owner</span>);
+<span class='kw'>let</span> <span class='ident'>use_again</span> <span class='op'>=</span> <span class='ident'>owner</span>;
+</pre>
+
+<h1 id="keeping-borrows-under-control" class='section-header'><a
+                           href="#keeping-borrows-under-control">Keeping borrows under control</a></h1>
+<p>TODO slide is subpar</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>let</span> <span class='ident'>outer</span>;
+{
+    <span class='kw'>let</span> <span class='ident'>inner</span> <span class='op'>=</span> <span class='number'>1</span>;
+    <span class='ident'>outer</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>inner</span>;
+}
+</pre>
+
+<hr class="pause" />
+
+<pre><code class="language-txt">... error: `inner` does not live long enough
+    outer = &amp;inner;
+             ^~~~~
+...  note: reference must be valid for the block suffix following statement 0 at 2:9...
+let outer;
+{
+    let inner = 1;
+    outer = &amp;inner;
+}
+...  note: ...but borrowed value is only valid for the block suffix following statement 0 at 4:17
+    let inner = 1;
+    outer = &amp;inner;
+}
+</code></pre>
+
+<h1 id="std-cookbook" class='section-header'><a
+                           href="#std-cookbook"><code>std</code> Cookbook</a></h1>
+<p>The standard library provides safe abstractions for a variety of basic
+concurrency patterns.</p>
+
+<p><strong>TODO: All slides are loose notes from here</strong></p>
+
+<p>Consider looking at <code>Condvar::wait</code>: makes behaviour much clearer than
+e.g. <code>pthread_cond_wait</code>.</p>
+
+<h1 id="std-cookbook-1" class='section-header'><a
+                           href="#std-cookbook-1"><code>std</code> Cookbook</a></h1>
+<h2 id="start-a-thread-with-information-from-a-parent" class='section-header'><a
+                           href="#start-a-thread-with-information-from-a-parent">Start a thread with information from a parent</a></h2>
+<p>Closure captures</p>
+
+<h1 id="std-cookbook-2" class='section-header'><a
+                           href="#std-cookbook-2"><code>std</code> Cookbook</a></h1>
+<h2 id="share-immutable-data" class='section-header'><a
+                           href="#share-immutable-data">Share immutable data</a></h2>
+<p><code>Arc&lt;...&gt;</code></p>
+
+<p>Guaranteed that there&#39;s no mutation due to ownership ensuring no
+sharing and <code>&amp;</code> ensuring no mutation (except... <code>&amp;</code> is &quot;shared&quot; not
+&quot;immutable&quot;. see the next slide)</p>
+
+<h1 id="std-cookbook-3" class='section-header'><a
+                           href="#std-cookbook-3"><code>std</code> Cookbook</a></h1>
+<h2 id="share-mutable-data" class='section-header'><a
+                           href="#share-mutable-data">Share mutable data</a></h2>
+<p><code>Arc&lt;Mutex&lt;...&gt;&gt;</code>, <code>Atomic...</code></p>
+
+<p>No way to access data without locking</p>
+
+<h1 id="std-cookbook-4" class='section-header'><a
+                           href="#std-cookbook-4"><code>std</code> Cookbook</a></h1>
+<h2 id="pass-messages" class='section-header'><a
+                           href="#pass-messages">Pass messages</a></h2>
+<p><code>std::sync::mpsc</code></p>
+
+<p>Data passed is not going to be accidentally shared (in a &quot;bad&quot; way).</p>
+
+<h1 id="std-cookbook-5" class='section-header'><a
+                           href="#std-cookbook-5"><code>std</code> Cookbook</a></h1>
+<h2 id="point-to/mutate-another-thread&#39;s-stack" class='section-header'><a
+                           href="#point-to/mutate-another-thread&#39;s-stack">Point to/mutate another thread&#39;s stack</a></h2>
+<p><code>std::thread::scoped</code></p>
+
+<p>Lifetimes ensure you&#39;re going to die before your parents</p>
+
+<h1 id="bigger-cookbook" class='section-header'><a
+                           href="#bigger-cookbook">Bigger cookbook</a></h1>
+<p><code>threadpool</code>, <code>simple_parallel</code>: a whole world of possibilities, e.g. research like Cilk are probably productive routes (lvars, <a href="http://www.frankmcsherry.org/differential/dataflow/2015/04/07/differential.html">differential dataflow</a> (TODO read more about this)).</p>
+
+<h1 id="what-rust-tackles" class='section-header'><a
+                           href="#what-rust-tackles">What Rust tackles</a></h1>
+<p>Data races, not race conditions</p>
+
+<p>The <code>Send</code> trait and the guarantees of <code>&amp;</code> and <code>&amp;mut</code> are key.</p>
+
+    <script type="text/javascript">
+        window.playgroundUrl = "";
+    </script>
+    
+</body>
+</html>
