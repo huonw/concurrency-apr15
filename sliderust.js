@@ -19,7 +19,10 @@ window.addEventListener('load', function () {
                 }
                 if (sib.nodeName === 'HR' && sib.classList.contains('pause')) {
                     nextSection = section.cloneNode(true);
-                    sib = sib.nextSibling;
+                    nextSection.classList.add('post-pause');
+                    var next = sib.nextSibling;
+                    sib.parentNode.removeChild(sib);
+                    sib = next;
                     break;
                 }
                 section.appendChild(node);
@@ -64,7 +67,8 @@ window.addEventListener('load', function () {
     }
     function update() {
         [].forEach.call(sections, function (x, i) {
-            x.className = (i === 0) ? 'title-slide' : '';
+            x.classList.remove('current');
+            if (i == 0) { x.classList.add('title-slide'); }
         });
 
         var can_go_forward = true, can_go_back = true;
@@ -79,7 +83,7 @@ window.addEventListener('load', function () {
         }
         adjustClass(forward, !can_go_forward, 'disabled');
         adjustClass(back,    !can_go_back,    'disabled');
-        sections[current].className += ' current';
+        sections[current].classList.add('current');
         // servo doesn't support this
         if (window.location.replace) {
             window.location.replace('#' + current);

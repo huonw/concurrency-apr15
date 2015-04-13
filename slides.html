@@ -27,6 +27,10 @@
 
 <p>April, 2015</p>
 
+<p><a href="https://www.flickr.com/photos/browneyes/2469970749/"><img src="rusty-beams.jpg" alt="parallel rusty things"></a></p>
+
+<p><a href="http://huonw.github.io/concurrency-apr15"><span style="font-weight: normal;">huonw.github.io/concurrency-apr15</span></a></p>
+
 <h1 id="haiku-(again)" class='section-header'><a
                            href="#haiku-(again)">Haiku (again)</a></h1>
 <blockquote>
@@ -37,140 +41,530 @@ safe, concurrent, fast</p>
 
 <div class="attribution"><a href="http://twitter.com/lindsey">@lindsey</a></div>
 
-<p>Being concurrent and safe is hard.</p>
+<p>Being concurrent/parallel and safe is hard.</p>
 
 <h1 id="but-not-too-hard" class='section-header'><a
                            href="#but-not-too-hard">But not too hard</a></h1>
-<p>Rust&#39;s type system has two main tools:</p>
+<p>Rust&#39;s type system has two core tools:</p>
 
 <ul>
 <li>ownership</li>
 <li>borrowing</li>
 </ul>
 
-<p>The concurrency story is built with them.</p>
+<p>This story is built with them.</p>
 
-<h1 id="ownership-&ndash;-who&#39;s-in-control?" class='section-header'><a
-                           href="#ownership-&ndash;-who&#39;s-in-control?">Ownership &ndash; who&#39;s in control?</a></h1><pre id='rust-example-rendered' class='rust '>
+<h1 id="ownership:-who&#39;s-in-control?" class='section-header'><a
+                           href="#ownership:-who&#39;s-in-control?">Ownership: who&#39;s in control?</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>struct</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='ident'>i32</span> }
 
 <span class='kw'>let</span> <span class='ident'>owner</span> <span class='op'>=</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='number'>1</span> };
 
-<span class='kw'>fn</span> <span class='ident'>foo</span>(<span class='ident'>value</span>: <span class='ident'>MyType</span>) { <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>x</span>); <span class='comment'>/* etc */</span> }
+<span class='kw'>fn</span> <span class='ident'>print_it</span>(<span class='ident'>value</span>: <span class='ident'>MyType</span>) { <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;x = {}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>x</span>); }
 
-<span class='ident'>foo</span>(<span class='ident'>owner</span>);
+<span class='ident'>print_it</span>(<span class='ident'>owner</span>);
 <span class='kw'>let</span> <span class='ident'>use_again</span> <span class='op'>=</span> <span class='ident'>owner</span>;
 </pre>
 
 <hr class="pause" />
 
-<pre><code class="language-txt">... error: use of moved value: `owner`
+<blockquote>
+<pre><code class="language-error">... error: use of moved value: `owner`
 let use_again = owner;
     ^~~~~~~~~
 ... note: `owner` moved here because it has type `main::MyType`, which is non-copyable
 show(owner);
      ^~~~~
 </code></pre>
+</blockquote>
 
-<h1 id="borrowing-&ndash;-don&#39;t-lose-control!" class='section-header'><a
-                           href="#borrowing-&ndash;-don&#39;t-lose-control!">Borrowing &ndash; don&#39;t lose control!</a></h1><pre id='rust-example-rendered' class='rust '>
+<h1 id="borrowing:-don&#39;t-lose-control!" class='section-header'><a
+                           href="#borrowing:-don&#39;t-lose-control!">Borrowing: don&#39;t lose control!</a></h1>
+<div class="original">
+```rust
+struct MyType { x: i32 }
+
+let owner = MyType { x: 1 };
+
+fn print_it(value: &MyType) { println!("x = {}", value.x); }
+
+print_it(&owner);
+let use_again = owner;
+```
+</div>
+
+<pre id='rust-example-rendered' class='rust '>
 <span class='kw'>struct</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='ident'>i32</span> }
 
 <span class='kw'>let</span> <span class='ident'>owner</span> <span class='op'>=</span> <span class='ident'>MyType</span> { <span class='ident'>x</span>: <span class='number'>1</span> };
 
-<span class='kw'>fn</span> <span class='ident'>foo</span>(<span class='ident'>value</span>: <span class='kw-2'>&amp;</span><span class='ident'>MyType</span>) { <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>x</span>); <span class='comment'>/* etc */</span> }
+<span class='kw'>fn</span> <span class='ident'>print_it</span>(<span class='ident'>value</span>: <span class='kw-2 introduced'>&amp;</span><span class='ident'>MyType</span>) { <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;x = {}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>x</span>); }
 
-<span class='ident'>foo</span>(<span class='kw-2'>&amp;</span><span class='ident'>owner</span>);
+<span class='ident'>print_it</span>(<span class='kw-2 introduced'>&amp;</span><span class='ident'>owner</span>);
 <span class='kw'>let</span> <span class='ident'>use_again</span> <span class='op'>=</span> <span class='ident'>owner</span>;
 </pre>
 
-<h1 id="keeping-borrows-under-control" class='section-header'><a
-                           href="#keeping-borrows-under-control">Keeping borrows under control</a></h1>
-<p>TODO slide is subpar</p>
-<pre id='rust-example-rendered' class='rust '>
-<span class='kw'>let</span> <span class='ident'>outer</span>;
-{
-    <span class='kw'>let</span> <span class='ident'>inner</span> <span class='op'>=</span> <span class='number'>1</span>;
-    <span class='ident'>outer</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>inner</span>;
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-txt">x = 1
+</code></pre>
+</blockquote>
+
+<p>References are pointers that allow using a value without transferring
+ownership.</p>
+
+<h1 id="lifetimes:-borrow-fearlessly" class='section-header'><a
+                           href="#lifetimes:-borrow-fearlessly">Lifetimes: borrow fearlessly</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>fn</span> <span class='ident'>foo</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>() <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>i32</span> {
+    <span class='kw'>let</span> <span class='ident'>x</span> <span class='op'>=</span> <span class='number'>1</span>;
+    <span class='kw-2'>&amp;</span><span class='ident'>x</span>
 }
 </pre>
 
 <hr class="pause" />
 
-<pre><code class="language-txt">... error: `inner` does not live long enough
-    outer = &amp;inner;
-             ^~~~~
-...  note: reference must be valid for the block suffix following statement 0 at 2:9...
-let outer;
-{
-    let inner = 1;
-    outer = &amp;inner;
-}
-...  note: ...but borrowed value is only valid for the block suffix following statement 0 at 4:17
-    let inner = 1;
-    outer = &amp;inner;
-}
+<blockquote>
+<pre><code class="language-error">... error: `x` does not live long enough
+    &amp;x
+     ^
 </code></pre>
+</blockquote>
 
 <h1 id="std-cookbook" class='section-header'><a
                            href="#std-cookbook"><code>std</code> Cookbook</a></h1>
 <p>The standard library provides safe abstractions for a variety of basic
-concurrency patterns.</p>
+concurrency patterns:</p>
 
-<p><strong>TODO: All slides are loose notes from here</strong></p>
+<ul>
+<li>threads, <a href="http://doc.rust-lang.org/std/thread/"><code>std::thread</code></a></li>
+<li>sending messages, <a href="http://doc.rust-lang.org/std/sync/mpsc/"><code>std::sync::mpsc</code></a></li>
+<li>sharing data, <a href="http://doc.rust-lang.org/std/sync/struct.Arc.html"><code>std::sync::Arc</code></a></li>
+<li>mutating data, <a href="http://doc.rust-lang.org/std/sync/struct.Mutex.html"><code>std::sync::Mutex</code></a>.</li>
+</ul>
 
-<p>Consider looking at <code>Condvar::wait</code>: makes behaviour much clearer than
-e.g. <code>pthread_cond_wait</code>.</p>
+<p>The APIs ensure that there&#39;s:</p>
 
-<h1 id="std-cookbook-1" class='section-header'><a
-                           href="#std-cookbook-1"><code>std</code> Cookbook</a></h1>
-<h2 id="start-a-thread-with-information-from-a-parent" class='section-header'><a
-                           href="#start-a-thread-with-information-from-a-parent">Start a thread with information from a parent</a></h2>
-<p>Closure captures</p>
+<ul>
+<li>no bad sharing,</li>
+<li>no access of unlocked data,</li>
+<li>no data races.</li>
+</ul>
 
-<h1 id="std-cookbook-2" class='section-header'><a
-                           href="#std-cookbook-2"><code>std</code> Cookbook</a></h1>
-<h2 id="share-immutable-data" class='section-header'><a
-                           href="#share-immutable-data">Share immutable data</a></h2>
-<p><code>Arc&lt;...&gt;</code></p>
+<h1 id="std-cookbook:-threads" class='section-header'><a
+                           href="#std-cookbook:-threads"><code>std</code> Cookbook: Threads</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 
-<p>Guaranteed that there&#39;s no mutation due to ownership ensuring no
-sharing and <code>&amp;</code> ensuring no mutation (except... <code>&amp;</code> is &quot;shared&quot; not
-&quot;immutable&quot;. see the next slide)</p>
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
 
-<h1 id="std-cookbook-3" class='section-header'><a
-                           href="#std-cookbook-3"><code>std</code> Cookbook</a></h1>
-<h2 id="share-mutable-data" class='section-header'><a
-                           href="#share-mutable-data">Share mutable data</a></h2>
-<p><code>Arc&lt;Mutex&lt;...&gt;&gt;</code>, <code>Atomic...</code></p>
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new thread: string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+});
+</pre>
 
-<p>No way to access data without locking</p>
+<hr class="pause" />
 
-<h1 id="std-cookbook-4" class='section-header'><a
-                           href="#std-cookbook-4"><code>std</code> Cookbook</a></h1>
-<h2 id="pass-messages" class='section-header'><a
-                           href="#pass-messages">Pass messages</a></h2>
-<p><code>std::sync::mpsc</code></p>
+<blockquote>
+<pre><code class="language-txt">new thread: string is: foo
+</code></pre>
+</blockquote>
 
-<p>Data passed is not going to be accidentally shared (in a &quot;bad&quot; way).</p>
+<h1 id="std-cookbook:-messages" class='section-header'><a
+                           href="#std-cookbook:-messages"><code>std</code> Cookbook: Messages</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
 
-<h1 id="std-cookbook-5" class='section-header'><a
-                           href="#std-cookbook-5"><code>std</code> Cookbook</a></h1>
-<h2 id="point-to/mutate-another-thread&#39;s-stack" class='section-header'><a
-                           href="#point-to/mutate-another-thread&#39;s-stack">Point to/mutate another thread&#39;s stack</a></h2>
-<p><code>std::thread::scoped</code></p>
+<span class='kw'>let</span> (<span class='ident'>tx</span>, <span class='ident'>rx</span>) <span class='op'>=</span> <span class='ident'>mpsc</span>::<span class='ident'>channel</span>();
 
-<p>Lifetimes ensure you&#39;re going to die before your parents</p>
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
 
-<h1 id="bigger-cookbook" class='section-header'><a
-                           href="#bigger-cookbook">Bigger cookbook</a></h1>
-<p><code>threadpool</code>, <code>simple_parallel</code>: a whole world of possibilities, e.g. research like Cilk are probably productive routes (lvars, <a href="http://www.frankmcsherry.org/differential/dataflow/2015/04/07/differential.html">differential dataflow</a> (TODO read more about this)).</p>
+    <span class='ident'>tx</span>.<span class='ident'>send</span>(<span class='ident'>some_string</span>).<span class='ident'>unwrap</span>();
 
-<h1 id="what-rust-tackles" class='section-header'><a
-                           href="#what-rust-tackles">What Rust tackles</a></h1>
-<p>Data races, not race conditions</p>
+});
 
-<p>The <code>Send</code> trait and the guarantees of <code>&amp;</code> and <code>&amp;mut</code> are key.</p>
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='ident'>rx</span>.<span class='ident'>recv</span>().<span class='ident'>unwrap</span>();
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-txt">main thread: the string is: foo
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-messages-1" class='section-header'><a
+                           href="#std-cookbook:-messages-1"><code>std</code> Cookbook: Messages</a></h1>
+<div class="original">
+```rust
+use std::thread;
+use std::sync::mpsc;
+
+let (tx, rx) = mpsc::channel();
+
+thread::spawn(move || {
+    let some_string = "foo".to_string();
+
+    tx.send(some_string).unwrap();
+    println!("new thread: the string is: {}", some_string);
+});
+
+let some_string = rx.recv().unwrap();
+println!("main thread: the string is: {}", some_string);
+```
+</div>
+
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
+
+<span class='kw'>let</span> (<span class='ident'>tx</span>, <span class='ident'>rx</span>) <span class='op'>=</span> <span class='ident'>mpsc</span>::<span class='ident'>channel</span>();
+
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
+
+    <span class='ident'>tx</span>.<span class='ident'>send</span>(<span class='ident'>some_string</span>).<span class='ident'>unwrap</span>();
+<div class="introduced">    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);</div>});
+
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='ident'>rx</span>.<span class='ident'>recv</span>().<span class='ident'>unwrap</span>();
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-error">... error: use of moved value: `some_string`
+    println!(&quot;new thread: the string is: {}&quot;, some_string);
+                                              ^~~~~~~~~~~
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-sharing" class='section-header'><a
+                           href="#std-cookbook:-sharing"><code>std</code> Cookbook: Sharing</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+
+
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
+
+
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+});
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-error">... error: use of moved value: `some_string`
+println!(&quot;main thread: the string is: {}&quot;, some_string);
+                                           ^~~~~~~~~~~
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-sharing-1" class='section-header'><a
+                           href="#std-cookbook:-sharing-1"><code>std</code> Cookbook: Sharing</a></h1>
+<div class="original">
+```rust
+use std::thread;
+use std::sync::Arc;
+
+let some_string = Arc::new("foo".to_string());
+let some_string2 = some_string.clone(); // cheap
+
+thread::spawn(move || {
+    println!("new thread: the string is: {}", some_string2);
+});
+
+println!("main thread: the string is: {}", some_string);
+```
+</div>
+
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+<div class="introduced"><span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;</div>
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class="introduced"><span class='ident'>Arc</span>::<span class='ident'>new</span>(</span><span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>()<span class="introduced">)</span>;
+<div class="introduced"><span class='kw'>let</span> <span class='ident'>some_string2</span> <span class='op'>=</span> <span class='ident'>some_string</span>.<span class='ident'>clone</span>(); <span class='comment'>// cheap</span></div>
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new thread: the string is: {}&quot;</span>, <span class='ident introduced'>some_string2</span>);
+});
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-txt">main thread: the string is: foo
+new thread: the string is: foo
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-mutation" class='section-header'><a
+                           href="#std-cookbook:-mutation"><code>std</code> Cookbook: Mutation</a></h1>
+<div class="original">
+```rust
+use std::thread;
+use std::sync::Arc;
+
+let some_string = Arc::new("foo".to_string());
+let some_string2 = some_string.clone(); // cheap
+
+thread::spawn(move || {
+    some_string2.push_str("bar");
+});
+
+thread::sleep_ms(100); // wait for mutation
+println!("main thread: string is: {}",
+         some_string);
+```
+</div>
+
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
+
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>());
+<span class='kw'>let</span> <span class='ident'>some_string2</span> <span class='op'>=</span> <span class='ident'>some_string</span>.<span class='ident'>clone</span>(); <span class='comment'>// cheap</span>
+
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+<div class="introduced">    <span class='ident'>some_string2</span>.<span class='ident'>push_str</span>(<span class='string'>&quot;bar&quot;</span>);</div>});
+
+<div class="introduced"><span class='ident'>thread</span>::<span class='ident'>sleep_ms</span>(<span class='number'>100</span>); <span class='comment'>// wait for mutation</span></div><span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: string is: {}&quot;</span>,
+         <span class='ident'>some_string</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-error">... error: cannot borrow immutable borrowed content as mutable
+    some_string2.push_str(&quot;bar&quot;);
+    ^~~~~~~~~~~~
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-mutation-1" class='section-header'><a
+                           href="#std-cookbook:-mutation-1"><code>std</code> Cookbook: Mutation</a></h1>
+<div class="original">
+```rust
+use std::thread;
+use std::sync::{Arc, Mutex};
+
+let some_string = Arc::new(Mutex::new("foo".to_string()));
+let some_string2 = some_string.clone(); // cheap
+
+thread::spawn(move || {
+    some_string2.lock().unwrap().push_str("bar");
+});
+
+thread::sleep_ms(100); // wait for mutation
+println!("main thread: string is: {}",
+         *some_string.lock().unwrap());
+```
+</div>
+
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::{<span class='ident'>Arc</span>, <span class='ident introduced'>Mutex</span>};
+
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class="introduced"><span class='ident'>Mutex</span>::<span class='ident'>new</span>(</span><span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>()<span class="introduced">)</span>);
+<span class='kw'>let</span> <span class='ident'>some_string2</span> <span class='op'>=</span> <span class='ident'>some_string</span>.<span class='ident'>clone</span>(); <span class='comment'>// cheap</span>
+
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='ident'>some_string2</span><span class="introduced">.<span class='ident'>lock</span>().<span class='ident'>unwrap</span>()</span>.<span class='ident'>push_str</span>(<span class='string'>&quot;bar&quot;</span>);
+});
+
+<span class='ident'>thread</span>::<span class='ident'>sleep_ms</span>(<span class='number'>100</span>); <span class='comment'>// wait for mutation</span>
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: string is: {}&quot;</span>,
+         <span class='op introduced'>*</span><span class='ident'>some_string</span><span class="introduced">.<span class='ident'>lock</span>().<span class='ident'>unwrap</span>()</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-txt">main thread: string is: foobar
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-mutation-2" class='section-header'><a
+                           href="#std-cookbook:-mutation-2"><code>std</code> Cookbook: Mutation</a></h1>
+<p><code>Mutex&lt;T&gt;</code> stores data internally, access is only granted via
+<code>lock</code>,</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>lock</span><span class='op'>&lt;</span><span class='lifetime'>&#39;r</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;r</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='lifetime'>&#39;r</span>, <span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
+        ...
+    }
+}
+</pre>
+
+<p>which returns a handle that unlocks the mutex on drop, and provides
+access to the data,</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;mutex</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>DerefMut</span> <span class='kw'>for</span> <span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='lifetime'>&#39;mutex</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>deref_mut</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='ident'>T</span> {
+        ...
+    }
+}
+</pre>
+
+<h1 id="std-cookbook:-stack-pointers" class='section-header'><a
+                           href="#std-cookbook:-stack-pointers"><code>std</code> Cookbook: Stack Pointers</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
+
+<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+});
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+</pre>
+
+<blockquote>
+<pre><code class="language-error">... error: use of moved value: `some_string`
+println!(&quot;main thread: the string is: {}&quot;, some_string);
+                                           ^~~~~~~~~~~
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-stack-pointers-1" class='section-header'><a
+                           href="#std-cookbook:-stack-pointers-1"><code>std</code> Cookbook: Stack Pointers</a></h1>
+<div class="original">
+```rust
+use std::thread;
+
+let some_string = "foo".to_string();
+
+let _guard = thread::scoped(/* move */ || {
+    println!("new thread: the string is: {}", some_string);
+});
+
+println!("main thread: the string is: {}", some_string);
+```
+</div>
+
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+
+<span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
+
+<span class="introduced"><span class='kw'>let</span> <span class='ident'>_guard</span> <span class='op'>=</span> </span><span class='ident'>thread</span>::<span class='ident introduced'>scoped</span>(<span class='comment'><span class="introduced">/*</span>move<span class="introduced">*/</span></span> <span class='op'>||</span> {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+});
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;main thread: the string is: {}&quot;</span>, <span class='ident'>some_string</span>);
+</pre>
+
+<hr class="pause" />
+
+<blockquote>
+<pre><code class="language-txt">main thread: the string is: foo
+new thread: the string is: foo
+</code></pre>
+</blockquote>
+
+<h1 id="std-cookbook:-stack-pointers-2" class='section-header'><a
+                           href="#std-cookbook:-stack-pointers-2"><code>std</code> Cookbook: Stack Pointers</a></h1>
+<p><code>thread::scoped</code> is like <code>Mutex::lock</code>, it returns a handle with a lifetime:</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>scoped</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>f</span>: <span class='ident'>F</span>) <span class='op'>-&gt;</span> <span class='ident'>JoinGuard</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;a</span>,
+          <span class='ident'>F</span>: <span class='ident'>FnOnce</span>() <span class='op'>-&gt;</span> <span class='ident'>T</span>,
+          <span class='ident'>F</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;a</span>
+</pre>
+
+<p><code>JoinGuard</code> joins the <code>scoped</code> thread when it goes out of scope. This
+plus the lifetime ensures that nothing the thread accesses will
+disappear until it is finished.</p>
+
+<h1 id="keep-cooking" class='section-header'><a
+                           href="#keep-cooking">Keep cooking</a></h1>
+<p><code>std</code> gives the basics, external crates have the spice, e.g.:</p>
+
+<ul>
+<li><a href="https://crates.io/crates/carboxyl"><code>carboxyl</code></a>: functional reactive programming</li>
+<li><a href="https://crates.io/crates/eventual"><code>eventual</code></a>: future &amp; stream abstractions</li>
+<li><a href="https://crates.io/crates/simple_parallel"><code>simple_parallel</code></a>: basic data-parallel operations</li>
+<li><a href="https://crates.io/crates/syncbox"><code>syncbox</code></a>: concurrent utilities</li>
+<li><a href="https://crates.io/crates/taskpipe"><code>taskpipe</code></a>: a multithreaded pipeline</li>
+<li><a href="https://crates.io/crates/threadpool"><code>threadpool</code></a>: two types of thread pools</li>
+</ul>
+
+<p>Lots of ideas from research that may work well in Rust too.  Worlds of
+possibilities!</p>
+
+<h1 id="simple_parallel" class='section-header'><a
+                           href="#simple_parallel"><code>simple_parallel</code></a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>simple_parallel</span>::<span class='ident'>Pool</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>pool</span> <span class='op'>=</span> <span class='ident'>Pool</span>::<span class='ident'>new</span>(<span class='number'>2</span>);
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>values</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>];
+<span class='ident'>pool</span>.<span class='ident'>for_</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>values</span>, <span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> {
+    <span class='op'>*</span><span class='ident'>x</span> <span class='op'>+=</span> <span class='number'>1</span>
+});
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>values</span>);
+</pre>
+
+<blockquote>
+<pre><code class="language-txt">[2, 3, 4, 5]
+</code></pre>
+</blockquote>
+
+<h1 id="eventual" class='section-header'><a
+                           href="#eventual"><code>eventual</code></a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>eventual</span>::<span class='op'>*</span>;
+
+<span class='kw'>let</span> <span class='ident'>future1</span> <span class='op'>=</span> <span class='ident'>Future</span>::<span class='ident'>spawn</span>(<span class='op'>||</span> <span class='number'>42</span>);
+<span class='kw'>let</span> <span class='ident'>future2</span> <span class='op'>=</span> <span class='ident'>Future</span>::<span class='ident'>spawn</span>(<span class='op'>||</span> <span class='number'>18</span>);
+
+<span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span>
+    <span class='ident'>join</span>((<span class='ident'>future1</span>.<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>x</span> <span class='op'>*</span> <span class='number'>2</span>),
+          <span class='ident'>future2</span>.<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>y</span><span class='op'>|</span> <span class='ident'>y</span> <span class='op'>+</span> <span class='number'>5</span>)))
+        .<span class='ident'>and_then</span>(<span class='op'>|</span>(<span class='ident'>v1</span>, <span class='ident'>v2</span>)<span class='op'>|</span> <span class='ident'>v1</span> <span class='op'>-</span> <span class='ident'>v2</span>)
+        .<span class='ident'>await</span>().<span class='ident'>unwrap</span>();
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;the number is {}&quot;</span>, <span class='ident'>res</span>);
+</pre>
+
+<blockquote>
+<pre><code class="language-txt">the number is 61
+</code></pre>
+</blockquote>
+
+<h1 id="why-data-races?" class='section-header'><a
+                           href="#why-data-races?">Why data races?</a></h1>
+<p>Rust tackles data races specifically: race condition, dead locks, live
+locks, ... are still possible.</p>
+
+<p>Data races are undefined behaviour and code with data races may behave
+very strangely due to optimisations and CPU behaviour.</p>
+
+<h2 id="technical-details" class='section-header'><a
+                           href="#technical-details">Technical details</a></h2>
+<p>The
+<a href="http://doc.rust-lang.org/std/marker/trait.Send.html"><code>std::marker::Send</code></a>
+and
+<a href="http://doc.rust-lang.org/std/marker/trait.Sync.html"><code>std::marker::Sync</code></a>
+traits are key. Used to ensure data race freedom by leveraging the
+guarantees of ownership, <code>&amp;mut</code> and <code>&amp;</code>.</p>
+
+<h1 id="questions?" class='section-header'><a
+                           href="#questions?">Questions?</a></h1>
+<p>&nbsp;</p>
+
+<h2 id="links" class='section-header'><a
+                           href="#links">Links</a></h2>
+<ul>
+<li><a href="http://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html">Fearless Concurrency in Rust</a></li>
+<li><a href="http://huonw.github.io/blog/2015/02/some-notes-on-send-and-sync/">Some notes on Send and Sync</a></li>
+</ul>
+
+<p><span style="font-size: 80%">These slides are available at </span><a href="http://huonw.github.io/concurrency-apr15"><span style="font-size: 80%">huonw.github.io/concurrency-apr15</span></a><span style="font-size: 80%">.</span></p>
 
     <script type="text/javascript">
         window.playgroundUrl = "";

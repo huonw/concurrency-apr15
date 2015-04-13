@@ -29,9 +29,14 @@ section.current {
 section.title-slide {
     text-align: center;
     font-weight: bold;
-    font-size: 150%;
+    font-size: 90%;
 }
-
+.title-slide p {
+  margin: 0 0 15px;
+}
+.title-slide p:first-of-type {
+  font-size: 120%;
+}
 code.language-text {
     /* Servo doesn't support pre-wrap yet */
     white-space: normal;
@@ -107,4 +112,23 @@ h1:empty {
   margin: 10px 0;
   padding: 0;
   border: none;
+}
+
+pre {
+  margin: 0;
+}
+
+.language-error {
+  color: red;
+  font-size: 0.9em;
+}
+
+.introduced {
+  background: yellow;
+}
+.post-pause .introduced {
+  background: none;
+}
+.original {
+  display: none;
 }
