@@ -14,11 +14,15 @@ Thanks:
 
 # In case you missed it
 
-- Rust 1.0.0-beta was released on April 3, thanks to 172
-contributors. The beta is the first time we're aiming for stability,
-and first time the staging restrictions are on.
-- crates.io passed 1 million downloads on April 1 (seriously): up to
+Rust 1.0.0 is close!
+
+The beta was released on April 3. The beta is the first time we're
+aiming for stability, and first time the staging restrictions are
+on. Full release on May 15.
+
+crates.io passed 1 million downloads on April 1 (seriously): up to
 almost 1.3 million now.
+
 
 # Planned upcoming events
 
