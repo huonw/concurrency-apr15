@@ -49,8 +49,8 @@ let use_again = owner;
 let use_again = owner;
     ^~~~~~~~~
 ... note: `owner` moved here because it has type `main::MyType`, which is non-copyable
-show(owner);
-     ^~~~~
+print_it(owner);
+         ^~~~~
 ```
 
 # Borrowing: don't lose control!
@@ -107,7 +107,7 @@ fn foo<'a>() -> &'a i32 {
      ^
 ```
 
-# `std` Cookbook
+# `std` cookbook
 
 The standard library provides safe abstractions for a variety of basic
 concurrency patterns:
@@ -123,7 +123,9 @@ The APIs ensure that there's:
 - no access of unlocked data,
 - no data races.
 
-# `std` Cookbook: Threads
+Thread-safety is law, not documentation.
+
+# `std` cookbook: threads
 
 ```rust
 use std::thread;
@@ -141,7 +143,7 @@ thread::spawn(move || {
 > new thread: string is: foo
 > ```
 
-# `std` Cookbook: Messages
+# `std` cookbook: messages
 
 
 ```rust
@@ -167,7 +169,7 @@ println!("main thread: the string is: {}", some_string);
 > main thread: the string is: foo
 > ```
 
-# `std` Cookbook: Messages
+# `std` cookbook: messages
 
 <div class="original">
 ```rust
@@ -213,7 +215,7 @@ println!("main thread: the string is: {}", some_string);
 ```
 
 
-# `std` Cookbook: Sharing
+# `std` cookbook: sharing
 
 
 ```rust
@@ -239,7 +241,7 @@ println!("main thread: the string is: {}", some_string);
 ```
 
 
-# `std` Cookbook: Sharing
+# `std` cookbook: sharing
 
 <div class="original">
 ```rust
@@ -277,7 +279,7 @@ println!("main thread: the string is: {}", some_string);
 > ```
 
 
-# `std` Cookbook: Mutation
+# `std` cookbook: mutation
 
 <div class="original">
 ```rust
@@ -318,7 +320,7 @@ println!("main thread: string is: {}",
     ^~~~~~~~~~~~
 ```
 
-# `std` Cookbook: Mutation
+# `std` cookbook: mutation
 
 <div class="original">
 ```rust
@@ -359,7 +361,7 @@ println!("main thread: string is: {}",
 > main thread: string is: foobar
 > ```
 
-# `std` Cookbook: Mutation
+# `std` cookbook: mutation
 
 `Mutex<T>` stores data internally, access is only granted via
 `lock`,
@@ -383,7 +385,7 @@ impl<'mutex, T> DerefMut for MutexGuard<'mutex, T> {
 }
 ```
 
-# `std` Cookbook: Stack Pointers
+# `std` cookbook: stack pointers
 
 
 ```rust
@@ -404,7 +406,7 @@ println!("main thread: the string is: {}", some_string);
                                            ^~~~~~~~~~~
 ```
 
-# `std` Cookbook: Stack Pointers
+# `std` cookbook: stack pointers
 
 <div class="original">
 ```rust
@@ -412,7 +414,7 @@ use std::thread;
 
 let some_string = "foo".to_string();
 
-let _guard = thread::scoped(/* move */ || {
+let _guard = thread::scoped(/*move*/ || {
     println!("new thread: the string is: {}", some_string);
 });
 
@@ -438,7 +440,7 @@ main thread: the string is: foo
 new thread: the string is: foo
 ```
 
-# `std` Cookbook: Stack Pointers
+# `std` cookbook: stack pointers
 
 `thread::scoped` is like `Mutex::lock`, it returns a handle with a lifetime:
 
@@ -449,9 +451,10 @@ pub fn scoped<'a, T, F>(f: F) -> JoinGuard<'a, T>
           F: Send + 'a
 ```
 
-`JoinGuard` joins the `scoped` thread when it goes out of scope. This
-plus the lifetime ensures that nothing the thread accesses will
-disappear until it is finished.
+`JoinGuard` joins the `scoped` thread when it goes out of scope.
+
+Statically ensures that anything the subthread borrows or accesses
+will remain valid while it exists.
 
 
 
@@ -460,11 +463,14 @@ disappear until it is finished.
 `std` gives the basics, external crates have the spice, e.g.:
 
 - [`carboxyl`](https://crates.io/crates/carboxyl): functional reactive programming
+- [`coroutine-rs`](https://crates.io/crates/coroutine-rs): coroutines
 - [`eventual`](https://crates.io/crates/eventual): future & stream abstractions
 - [`simple_parallel`](https://crates.io/crates/simple_parallel): basic data-parallel operations
 - [`syncbox`](https://crates.io/crates/syncbox): concurrent utilities
 - [`taskpipe`](https://crates.io/crates/taskpipe): a multithreaded pipeline
 - [`threadpool`](https://crates.io/crates/threadpool): two types of thread pools
+
+(Not exhaustive.)
 
 Lots of ideas from research that may work well in Rust too.  Worlds of
 possibilities!
@@ -477,11 +483,11 @@ use simple_parallel::Pool;
 let mut pool = Pool::new(2);
 
 let mut values = [1, 2, 3, 4];
-pool.for_(&mut values, |x| {
+pool.for_(&mut values, |x: &mut i32| {
     *x += 1
 });
 
-println!("{}", &values);
+println!("{:?}", &values);
 ```
 
 > ```txt
@@ -496,6 +502,8 @@ use eventual::*;
 let future1 = Future::spawn(|| 42);
 let future2 = Future::spawn(|| 18);
 
+// ...
+
 let res =
     join((future1.map(|x| x * 2),
           future2.map(|y| y + 5)))
@@ -509,30 +517,41 @@ println!("the number is {}", res);
 the number is 61
 ```
 
-# Why data races?
+# "Data races"?
 
-Rust tackles data races specifically: race condition, dead locks, live
-locks, ... are still possible.
+A *data race* occurs if:
 
-Data races are undefined behaviour and code with data races may behave
-very strangely due to optimisations and CPU behaviour.
+- a memory location is accessed concurrently
+- at least one of those accesses is a write
+- at least one of those accesses is non-atomic
 
-## Technical details
+They are undefined behaviour: code with data races may behave very
+strangely due to optimisations and CPU behaviour.
+
+Rust tackles data races due to the memory safety implications. Race
+conditions, dead locks, live locks, ... are not outlawed.
+
+
+
+# Implementation details
 
 The
 [`std::marker::Send`](http://doc.rust-lang.org/std/marker/trait.Send.html)
 and
 [`std::marker::Sync`](http://doc.rust-lang.org/std/marker/trait.Sync.html)
-traits are key. Used to ensure data race freedom by leveraging the
+traits are key. Ensure data race freedom by leveraging the
 guarantees of ownership, `&mut` and `&`.
 
-# Questions?
+Defined entirely in `std`: the compiler/language has no hard-coded
+knowledge of threads or thread-safety.
 
-&nbsp;
-
-## Links
+More details:
 
 - [Fearless Concurrency in Rust](http://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html)
 - [Some notes on Send and Sync](http://huonw.github.io/blog/2015/02/some-notes-on-send-and-sync/)
+
+
+
+# Questions?
 
 <span style="font-size: 80%">These slides are available at </span>[<span style="font-size: 80%">huonw.github.io/concurrency-apr15</span>](http://huonw.github.io/concurrency-apr15)<span style="font-size: 80%">.</span>

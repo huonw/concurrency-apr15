@@ -73,8 +73,8 @@ safe, concurrent, fast</p>
 let use_again = owner;
     ^~~~~~~~~
 ... note: `owner` moved here because it has type `main::MyType`, which is non-copyable
-show(owner);
-     ^~~~~
+print_it(owner);
+         ^~~~~
 </code></pre>
 </blockquote>
 
@@ -132,7 +132,7 @@ ownership.</p>
 </blockquote>
 
 <h1 id="std-cookbook" class='section-header'><a
-                           href="#std-cookbook"><code>std</code> Cookbook</a></h1>
+                           href="#std-cookbook"><code>std</code> cookbook</a></h1>
 <p>The standard library provides safe abstractions for a variety of basic
 concurrency patterns:</p>
 
@@ -151,8 +151,10 @@ concurrency patterns:</p>
 <li>no data races.</li>
 </ul>
 
+<p>Thread-safety is law, not documentation.</p>
+
 <h1 id="std-cookbook:-threads" class='section-header'><a
-                           href="#std-cookbook:-threads"><code>std</code> Cookbook: Threads</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#std-cookbook:-threads"><code>std</code> cookbook: threads</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 
 <span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
@@ -170,7 +172,7 @@ concurrency patterns:</p>
 </blockquote>
 
 <h1 id="std-cookbook:-messages" class='section-header'><a
-                           href="#std-cookbook:-messages"><code>std</code> Cookbook: Messages</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#std-cookbook:-messages"><code>std</code> cookbook: messages</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
 
@@ -195,7 +197,7 @@ concurrency patterns:</p>
 </blockquote>
 
 <h1 id="std-cookbook:-messages-1" class='section-header'><a
-                           href="#std-cookbook:-messages-1"><code>std</code> Cookbook: Messages</a></h1>
+                           href="#std-cookbook:-messages-1"><code>std</code> cookbook: messages</a></h1>
 <div class="original">
 ```rust
 use std::thread;
@@ -241,7 +243,7 @@ println!("main thread: the string is: {}", some_string);
 </blockquote>
 
 <h1 id="std-cookbook:-sharing" class='section-header'><a
-                           href="#std-cookbook:-sharing"><code>std</code> Cookbook: Sharing</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#std-cookbook:-sharing"><code>std</code> cookbook: sharing</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 
 
@@ -265,7 +267,7 @@ println!(&quot;main thread: the string is: {}&quot;, some_string);
 </blockquote>
 
 <h1 id="std-cookbook:-sharing-1" class='section-header'><a
-                           href="#std-cookbook:-sharing-1"><code>std</code> Cookbook: Sharing</a></h1>
+                           href="#std-cookbook:-sharing-1"><code>std</code> cookbook: sharing</a></h1>
 <div class="original">
 ```rust
 use std::thread;
@@ -303,7 +305,7 @@ new thread: the string is: foo
 </blockquote>
 
 <h1 id="std-cookbook:-mutation" class='section-header'><a
-                           href="#std-cookbook:-mutation"><code>std</code> Cookbook: Mutation</a></h1>
+                           href="#std-cookbook:-mutation"><code>std</code> cookbook: mutation</a></h1>
 <div class="original">
 ```rust
 use std::thread;
@@ -346,7 +348,7 @@ println!("main thread: string is: {}",
 </blockquote>
 
 <h1 id="std-cookbook:-mutation-1" class='section-header'><a
-                           href="#std-cookbook:-mutation-1"><code>std</code> Cookbook: Mutation</a></h1>
+                           href="#std-cookbook:-mutation-1"><code>std</code> cookbook: mutation</a></h1>
 <div class="original">
 ```rust
 use std::thread;
@@ -389,7 +391,7 @@ println!("main thread: string is: {}",
 </blockquote>
 
 <h1 id="std-cookbook:-mutation-2" class='section-header'><a
-                           href="#std-cookbook:-mutation-2"><code>std</code> Cookbook: Mutation</a></h1>
+                           href="#std-cookbook:-mutation-2"><code>std</code> cookbook: mutation</a></h1>
 <p><code>Mutex&lt;T&gt;</code> stores data internally, access is only granted via
 <code>lock</code>,</p>
 <pre id='rust-example-rendered' class='rust '>
@@ -411,7 +413,7 @@ access to the data,</p>
 </pre>
 
 <h1 id="std-cookbook:-stack-pointers" class='section-header'><a
-                           href="#std-cookbook:-stack-pointers"><code>std</code> Cookbook: Stack Pointers</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#std-cookbook:-stack-pointers"><code>std</code> cookbook: stack pointers</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 
 <span class='kw'>let</span> <span class='ident'>some_string</span> <span class='op'>=</span> <span class='string'>&quot;foo&quot;</span>.<span class='ident'>to_string</span>();
@@ -431,14 +433,14 @@ println!(&quot;main thread: the string is: {}&quot;, some_string);
 </blockquote>
 
 <h1 id="std-cookbook:-stack-pointers-1" class='section-header'><a
-                           href="#std-cookbook:-stack-pointers-1"><code>std</code> Cookbook: Stack Pointers</a></h1>
+                           href="#std-cookbook:-stack-pointers-1"><code>std</code> cookbook: stack pointers</a></h1>
 <div class="original">
 ```rust
 use std::thread;
 
 let some_string = "foo".to_string();
 
-let _guard = thread::scoped(/* move */ || {
+let _guard = thread::scoped(/*move*/ || {
     println!("new thread: the string is: {}", some_string);
 });
 
@@ -467,7 +469,7 @@ new thread: the string is: foo
 </blockquote>
 
 <h1 id="std-cookbook:-stack-pointers-2" class='section-header'><a
-                           href="#std-cookbook:-stack-pointers-2"><code>std</code> Cookbook: Stack Pointers</a></h1>
+                           href="#std-cookbook:-stack-pointers-2"><code>std</code> cookbook: stack pointers</a></h1>
 <p><code>thread::scoped</code> is like <code>Mutex::lock</code>, it returns a handle with a lifetime:</p>
 <pre id='rust-example-rendered' class='rust '>
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>scoped</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>f</span>: <span class='ident'>F</span>) <span class='op'>-&gt;</span> <span class='ident'>JoinGuard</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>
@@ -476,9 +478,10 @@ new thread: the string is: foo
           <span class='ident'>F</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;a</span>
 </pre>
 
-<p><code>JoinGuard</code> joins the <code>scoped</code> thread when it goes out of scope. This
-plus the lifetime ensures that nothing the thread accesses will
-disappear until it is finished.</p>
+<p><code>JoinGuard</code> joins the <code>scoped</code> thread when it goes out of scope.</p>
+
+<p>Statically ensures that anything the subthread borrows or accesses
+will remain valid while it exists.</p>
 
 <h1 id="keep-cooking" class='section-header'><a
                            href="#keep-cooking">Keep cooking</a></h1>
@@ -486,12 +489,15 @@ disappear until it is finished.</p>
 
 <ul>
 <li><a href="https://crates.io/crates/carboxyl"><code>carboxyl</code></a>: functional reactive programming</li>
+<li><a href="https://crates.io/crates/coroutine-rs"><code>coroutine-rs</code></a>: coroutines</li>
 <li><a href="https://crates.io/crates/eventual"><code>eventual</code></a>: future &amp; stream abstractions</li>
 <li><a href="https://crates.io/crates/simple_parallel"><code>simple_parallel</code></a>: basic data-parallel operations</li>
 <li><a href="https://crates.io/crates/syncbox"><code>syncbox</code></a>: concurrent utilities</li>
 <li><a href="https://crates.io/crates/taskpipe"><code>taskpipe</code></a>: a multithreaded pipeline</li>
 <li><a href="https://crates.io/crates/threadpool"><code>threadpool</code></a>: two types of thread pools</li>
 </ul>
+
+<p>(Not exhaustive.)</p>
 
 <p>Lots of ideas from research that may work well in Rust too.  Worlds of
 possibilities!</p>
@@ -503,11 +509,11 @@ possibilities!</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>pool</span> <span class='op'>=</span> <span class='ident'>Pool</span>::<span class='ident'>new</span>(<span class='number'>2</span>);
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>values</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>];
-<span class='ident'>pool</span>.<span class='ident'>for_</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>values</span>, <span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> {
+<span class='ident'>pool</span>.<span class='ident'>for_</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>values</span>, <span class='op'>|</span><span class='ident'>x</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>i32</span><span class='op'>|</span> {
     <span class='op'>*</span><span class='ident'>x</span> <span class='op'>+=</span> <span class='number'>1</span>
 });
 
-<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>values</span>);
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>values</span>);
 </pre>
 
 <blockquote>
@@ -521,6 +527,8 @@ possibilities!</p>
 
 <span class='kw'>let</span> <span class='ident'>future1</span> <span class='op'>=</span> <span class='ident'>Future</span>::<span class='ident'>spawn</span>(<span class='op'>||</span> <span class='number'>42</span>);
 <span class='kw'>let</span> <span class='ident'>future2</span> <span class='op'>=</span> <span class='ident'>Future</span>::<span class='ident'>spawn</span>(<span class='op'>||</span> <span class='number'>18</span>);
+
+<span class='comment'>// ...</span>
 
 <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span>
     <span class='ident'>join</span>((<span class='ident'>future1</span>.<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>x</span> <span class='op'>*</span> <span class='number'>2</span>),
@@ -536,34 +544,43 @@ possibilities!</p>
 </code></pre>
 </blockquote>
 
-<h1 id="why-data-races?" class='section-header'><a
-                           href="#why-data-races?">Why data races?</a></h1>
-<p>Rust tackles data races specifically: race condition, dead locks, live
-locks, ... are still possible.</p>
+<h1 id="&quot;data-races&quot;?" class='section-header'><a
+                           href="#&quot;data-races&quot;?">&quot;Data races&quot;?</a></h1>
+<p>A <em>data race</em> occurs if:</p>
 
-<p>Data races are undefined behaviour and code with data races may behave
-very strangely due to optimisations and CPU behaviour.</p>
+<ul>
+<li>a memory location is accessed concurrently</li>
+<li>at least one of those accesses is a write</li>
+<li>at least one of those accesses is non-atomic</li>
+</ul>
 
-<h2 id="technical-details" class='section-header'><a
-                           href="#technical-details">Technical details</a></h2>
+<p>They are undefined behaviour: code with data races may behave very
+strangely due to optimisations and CPU behaviour.</p>
+
+<p>Rust tackles data races due to the memory safety implications. Race
+conditions, dead locks, live locks, ... are not outlawed.</p>
+
+<h1 id="implementation-details" class='section-header'><a
+                           href="#implementation-details">Implementation details</a></h1>
 <p>The
 <a href="http://doc.rust-lang.org/std/marker/trait.Send.html"><code>std::marker::Send</code></a>
 and
 <a href="http://doc.rust-lang.org/std/marker/trait.Sync.html"><code>std::marker::Sync</code></a>
-traits are key. Used to ensure data race freedom by leveraging the
+traits are key. Ensure data race freedom by leveraging the
 guarantees of ownership, <code>&amp;mut</code> and <code>&amp;</code>.</p>
 
-<h1 id="questions?" class='section-header'><a
-                           href="#questions?">Questions?</a></h1>
-<p>&nbsp;</p>
+<p>Defined entirely in <code>std</code>: the compiler/language has no hard-coded
+knowledge of threads or thread-safety.</p>
 
-<h2 id="links" class='section-header'><a
-                           href="#links">Links</a></h2>
+<p>More details:</p>
+
 <ul>
 <li><a href="http://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html">Fearless Concurrency in Rust</a></li>
 <li><a href="http://huonw.github.io/blog/2015/02/some-notes-on-send-and-sync/">Some notes on Send and Sync</a></li>
 </ul>
 
+<h1 id="questions?" class='section-header'><a
+                           href="#questions?">Questions?</a></h1>
 <p><span style="font-size: 80%">These slides are available at </span><a href="http://huonw.github.io/concurrency-apr15"><span style="font-size: 80%">huonw.github.io/concurrency-apr15</span></a><span style="font-size: 80%">.</span></p>
 
     <script type="text/javascript">
