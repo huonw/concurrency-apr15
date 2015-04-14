@@ -1,6 +1,6 @@
 % Rust Sydney #2
 
-![](logo-v1.png)
+![Logo](logo-v1.png)
 
 <p style="font-size: 90%; font-weight: normal; margin-top: 100px;">code of conduct: <a href="http://www.rust-lang.org/conduct.html">rust-lang.org/conduct.html</a></p>
 
@@ -20,8 +20,9 @@ The beta was released on April 3. The beta is the first time we're
 aiming for stability, and first time the staging restrictions are
 on. Full release on May 15.
 
-crates.io passed 1 million downloads on April 1 (seriously): up to
-almost 1.3 million now.
+crates.io passed 1 million downloads on March 30.
+
+![Download graph](crates-downloads.png)
 
 
 # Planned upcoming events
